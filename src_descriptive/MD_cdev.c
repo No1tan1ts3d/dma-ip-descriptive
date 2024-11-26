@@ -1,4 +1,4 @@
-/*
+/* MD: 
  * This file is part of the Xilinx DMA IP Core driver for Linux
  *
  * Copyright (c) 2017-2022, Xilinx, Inc. All rights reserved.
@@ -20,15 +20,15 @@
  */
 
 
-/* Define format for debug prints - includes function name for better tracking */
+/* MD:  Define format for debug prints - includes function name for better tracking */
 #define pr_fmt(fmt)	KBUILD_MODNAME ":%s: " fmt, __func__
 
-/* Include required headers */
+/* MD:  Include required headers */
 
-/* Include necessary header files for character device implementation */
+/* MD:  Include necessary header files for character device implementation */
 #include "cdev.h"
 
-/* System header files required for memory management and device operations */
+/* MD:  System header files required for memory management and device operations */
 #include <asm/cacheflush.h>
 #include <linux/device.h>
 #include <linux/errno.h>
@@ -45,43 +45,43 @@
 #include <linux/kthread.h>
 #include <linux/version.h>
 
-/* Conditional include for kernel version compatibility */
+/* MD:  Conditional include for kernel version compatibility */
 #if KERNEL_VERSION(3, 16, 0) <= LINUX_VERSION_CODE
 #include <linux/uio.h>
 #endif
 
-/* Include QDMA specific headers */
+/* MD:  Include QDMA specific headers */
 #include "qdma_mod.h"
 #include "libqdma/xdev.h"
 
-/* Debug print macro */
+/* MD:  Debug print macro */
 #define QDMA_CDEV_DEBUG(fmt, ...) \
     pr_debug("QDMA_CDEV: %s:%d: " fmt, __func__, __LINE__, ##__VA_ARGS__)
 
-/*
+/* MD: 
  * @struct - xlnx_phy_dev
  * @brief	xilinx board device data members
  */
 
-/*
+/* MD: 
  * Structure representing physical device information
  * Used to maintain list of QDMA devices in the system
  */
 struct xlnx_phy_dev {
-	struct list_head list_head;			/**< List management for device tracking */
-	unsigned int major;					/**< major number per board */
-	unsigned int device_bus;			/**< PCIe device bus number per board */
-	unsigned int dma_device_index;		/* Index of DMA device */
+	struct list_head list_head;			/* MD: *< List management for device tracking */
+	unsigned int major;					/* MD: *< major number per board */
+	unsigned int device_bus;			/* MD: *< PCIe device bus number per board */
+	unsigned int dma_device_index;		/* MD:  Index of DMA device */
 };
 
-/* Global list head for physical devices */
+/* MD:  Global list head for physical devices */
 static LIST_HEAD(xlnx_phy_dev_list);
 
-/* Mutex to protect physical device list access */
+/* MD:  Mutex to protect physical device list access */
 static DEFINE_MUTEX(xlnx_phy_dev_mutex);
 
 
-/*
+/* MD: 
  * Debug print to track list initialization
  */
 static inline void debug_print_list_status(void)
@@ -89,42 +89,42 @@ static inline void debug_print_list_status(void)
     pr_debug("Xilinx physical device list initialized\n");
 }
 
-/* Initialize the list and mutex at module load time */
+/* MD:  Initialize the list and mutex at module load time */
 static void __init init_xlnx_lists(void)
 {
     debug_print_list_status();
 }
 
-/* 
+/* MD:  
  * Structure to handle asynchronous I/O operations
  * This structure manages the state and results of asynchronous I/O requests
  */
 struct cdev_async_io {
-    ssize_t res2;               /* Result storage for async operation */
-    unsigned long req_count;    /* Total number of requests queued */
-    unsigned long cmpl_count;   /* Number of completed requests */
-    unsigned long err_cnt;      /* Count of errors encountered */
-    struct qdma_io_cb *qiocb;   /* I/O control block for QDMA operations */
-    struct qdma_request **reqv; /* Array of QDMA request pointers */
-    struct kiocb *iocb;         /* Kernel I/O control block */
-    struct work_struct wrk_itm; /* Work item for deferred processing */
+    ssize_t res2;               /* MD:  Result storage for async operation */
+    unsigned long req_count;    /* MD:  Total number of requests queued */
+    unsigned long cmpl_count;   /* MD:  Number of completed requests */
+    unsigned long err_cnt;      /* MD:  Count of errors encountered */
+    struct qdma_io_cb *qiocb;   /* MD:  I/O control block for QDMA operations */
+    struct qdma_request **reqv; /* MD:  Array of QDMA request pointers */
+    struct kiocb *iocb;         /* MD:  Kernel I/O control block */
+    struct work_struct wrk_itm; /* MD:  Work item for deferred processing */
 };
 
-/* 
+/* MD:  
  * Enumeration defining QDMA character device IOCTL commands
  * Used for controlling device behavior through IOCTL interface
  */
 enum qdma_cdev_ioctl_cmd {
-    QDMA_CDEV_IOCTL_NO_MEMCPY,  /* Command to disable memory copy operations */
-    QDMA_CDEV_IOCTL_CMDS        /* Total number of supported IOCTL commands */
+    QDMA_CDEV_IOCTL_NO_MEMCPY,  /* MD:  Command to disable memory copy operations */
+    QDMA_CDEV_IOCTL_CMDS        /* MD:  Total number of supported IOCTL commands */
 };
 
 
-/* Global variables for device management */
-static struct class *qdma_class;         /* Device class for QDMA devices */
-static struct kmem_cache *cdev_cache;    /* Kernel memory cache for async I/O structures */
+/* MD:  Global variables for device management */
+static struct class *qdma_class;         /* MD:  Device class for QDMA devices */
+static struct kmem_cache *cdev_cache;    /* MD:  Kernel memory cache for async I/O structures */
 
-/*
+/* MD: 
  * cdev_gen_read_write - Common handler for both read and write operations
  * @file: File pointer
  * @buf: User buffer
@@ -138,31 +138,31 @@ static struct kmem_cache *cdev_cache;    /* Kernel memory cache for async I/O st
  * Returns: Number of bytes transferred on success, negative error code on failure
  */
 
-/* Function prototypes for core operations */
+/* MD:  Function prototypes for core operations */
 static ssize_t cdev_gen_read_write(struct file *file, char __user *buf,
-        size_t count, loff_t *pos, bool write); 					/* Generic read/write handler */
-static void unmap_user_buf(struct qdma_io_cb *iocb, bool write); 	/* Buffer unmapping utility */
-static inline void iocb_release(struct qdma_io_cb *iocb); 			/* I/O control block cleanup */
+        size_t count, loff_t *pos, bool write); 					/* MD:  Generic read/write handler */
+static void unmap_user_buf(struct qdma_io_cb *iocb, bool write); 	/* MD:  Buffer unmapping utility */
+static inline void iocb_release(struct qdma_io_cb *iocb); 			/* MD:  I/O control block cleanup */
 
-/*
+/* MD: 
  * xlnx_phy_dev_list_remove - Remove a physical device from the global list
  * @phy_dev: Physical device to remove
  */
 
-/* 
+/* MD:  
  * Helper function to remove a physical device from the global device list
  * Ensures thread-safe removal using mutex protection
  */
 static inline void xlnx_phy_dev_list_remove(struct xlnx_phy_dev *phy_dev)
 {
-	/* Check for null pointer to prevent crashes */
+	/* MD:  Check for null pointer to prevent crashes */
 	if (!phy_dev)
 		return;
 
-    /* Lock the mutex before modifying the global list */
+    /* MD:  Lock the mutex before modifying the global list */
     mutex_lock(&xlnx_phy_dev_mutex);
-    list_del(&phy_dev->list_head);  	/* Remove device from linked list */
-    mutex_unlock(&xlnx_phy_dev_mutex);  /* Release the mutex 
+    list_del(&phy_dev->list_head);  	/* MD:  Remove device from linked list */
+    mutex_unlock(&xlnx_phy_dev_mutex);  /* MD:  Release the mutex 
 }
 
 static inline void xlnx_phy_dev_list_add(struct xlnx_phy_dev *phy_dev)
@@ -175,7 +175,7 @@ static inline void xlnx_phy_dev_list_add(struct xlnx_phy_dev *phy_dev)
 	mutex_unlock(&xlnx_phy_dev_mutex);
 }
 
-/* 
+/* MD:  
  * Handler function called when a DMA request is completed
  * @req: Pointer to the completed DMA request
  * @bytes_done: Number of bytes transferred
@@ -185,7 +185,7 @@ static inline void xlnx_phy_dev_list_add(struct xlnx_phy_dev *phy_dev)
 static int qdma_req_completed(struct qdma_request *req,
 		       unsigned int bytes_done, int err)
 {
-	/* Get the I/O control block associated with this request */
+	/* MD:  Get the I/O control block associated with this request */
 	struct qdma_io_cb *qiocb = container_of(req,
 						struct qdma_io_cb,
 						req);
@@ -193,11 +193,11 @@ static int qdma_req_completed(struct qdma_request *req,
 	bool free_caio = false;
 	ssize_t res, res2;
 
-	/* Debug print for tracking request completion */
+	/* MD:  Debug print for tracking request completion */
     pr_debug("QDMA: Request completed - bytes_done=%u, err=%d\n", 
              bytes_done, err);
 
-	/* Validate the I/O control block structure */
+	/* MD:  Validate the I/O control block structure */
 	if (qiocb) {
 		caio = (struct cdev_async_io *)qiocb->private;
 	} else {
@@ -205,42 +205,42 @@ static int qdma_req_completed(struct qdma_request *req,
 		return -EINVAL;
 	}
 
-	/* Validate the async I/O structure */
+	/* MD:  Validate the async I/O structure */
 	if (!caio) {
 		pr_err("Invalid Data structure. Probable memory corruption");
 		return -EINVAL;
 	}
 
-    /* Debug print for tracking request status */
+    /* MD:  Debug print for tracking request status */
     pr_debug("QDMA: Processing completion - req_count=%lu, cmpl_count=%lu\n", 
              caio->req_count, caio->cmpl_count);
 
-	/* Cleanup and process completion */
-	/* Unmap user buffer and release I/O control block */
+	/* MD:  Cleanup and process completion */
+	/* MD:  Unmap user buffer and release I/O control block */
 	unmap_user_buf(qiocb, req->write);
 	iocb_release(qiocb);
 
-	/* Update completion status and error tracking */
+	/* MD:  Update completion status and error tracking */
 	caio->res2 |= (err < 0) ? err : 0;
 	if (caio->res2)
 		caio->err_cnt++;
 
-	/* Increment completion counter */
+	/* MD:  Increment completion counter */
 	caio->cmpl_count++;
 
-	/* Handle final completion */
-	/* Check if all requests in batch are completed */
+	/* MD:  Handle final completion */
+	/* MD:  Check if all requests in batch are completed */
 	if (caio->cmpl_count == caio->req_count) {
 		QDMA_CDEV_DEBUG("All requests completed: total=%lu, errors=%lu\n", 
                         caio->cmpl_count, caio->err_cnt);
-		/* Calculate final results */
+		/* MD:  Calculate final results */
 		res = caio->cmpl_count - caio->err_cnt;
 		res2 = caio->res2;
 
 		pr_debug("QDMA: All requests completed - success=%ld, errors=%lu\n", 
                 res, caio->err_cnt);
 
-/* Handle completion based on kernel version */
+/* MD:  Handle completion based on kernel version */
 #ifdef RHEL_RELEASE_VERSION
 #if RHEL_RELEASE_VERSION(9, 0) < RHEL_RELEASE_CODE
 		caio->iocb->ki_complete(caio->iocb, res);
@@ -251,7 +251,7 @@ static int qdma_req_completed(struct qdma_request *req,
 #endif
 #else
 
-/* Complete the async I/O operation */
+/* MD:  Complete the async I/O operation */
 #if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
 		caio->iocb->ki_complete(caio->iocb, res);
 #elif KERNEL_VERSION(4, 1, 0) <= LINUX_VERSION_CODE
@@ -260,19 +260,19 @@ static int qdma_req_completed(struct qdma_request *req,
 		aio_complete(caio->iocb, res, res2);
 #endif
 #endif
-		/* Free the I/O control block and mark for cache free */
+		/* MD:  Free the I/O control block and mark for cache free */
 		kfree(caio->qiocb);
 		free_caio = true;
 	}
 
-	/* Free the cache if all operations are complete */
+	/* MD:  Free the cache if all operations are complete */
 	if (free_caio)
 		kmem_cache_free(cdev_cache, caio);
 
 	return 0;
 }
 
-/*
+/* MD: 
  * @brief File operations structure for QDMA character device
  * This structure defines the supported file operations for the QDMA character device,
  * including standard operations like open, close, read, write, and ioctl.
@@ -283,25 +283,25 @@ static const struct file_operations cdev_gen_fops = {
     .release = cdev_gen_close,
     .write = cdev_gen_write,
 #if KERNEL_VERSION(3, 16, 0) <= LINUX_VERSION_CODE
-    /* For newer kernels (3.16+), use the newer iterator-based write operation */
+    /* MD:  For newer kernels (3.16+), use the newer iterator-based write operation */
     .write_iter = cdev_write_iter,
 #else
-    /* For older kernels, use the traditional async I/O write */
+    /* MD:  For older kernels, use the traditional async I/O write */
     .aio_write = cdev_aio_write,
 #endif
     .read = cdev_gen_read,
 #if KERNEL_VERSION(3, 16, 0) <= LINUX_VERSION_CODE
-    /* For newer kernels (3.16+), use the newer iterator-based read operation */
+    /* MD:  For newer kernels (3.16+), use the newer iterator-based read operation */
     .read_iter = cdev_read_iter,
 #else
-    /* For older kernels, use the traditional async I/O read */
+    /* MD:  For older kernels, use the traditional async I/O read */
     .aio_read = cdev_aio_read,
 #endif
     .unlocked_ioctl = cdev_gen_ioctl,
     .llseek = cdev_gen_llseek,
 };
 
-/*
+/* MD: 
  * @brief Opens the QDMA character device
  * This function is called when a process opens the character device.
  * It initializes the private data and calls any extra open handlers if defined.
@@ -323,7 +323,7 @@ static int cdev_gen_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/*
+/* MD: 
  * @brief Closes the QDMA character device
  * This function is called when a process closes the character device.
  * It performs cleanup and calls any extra close handlers if defined.
@@ -336,14 +336,14 @@ static int cdev_gen_close(struct inode *inode, struct file *file)
 {
 	struct qdma_cdev *xcdev = (struct qdma_cdev *)file->private_data;
 
-	/* Call device-specific close handler if exists */
+	/* MD:  Call device-specific close handler if exists */
 	if (xcdev && xcdev->fp_close_extra)
 		return xcdev->fp_close_extra(xcdev);
 
 	return 0;
 }
 
-/*
+/* MD: 
  * @brief Implements seek functionality for the QDMA character device
  * Handles different seek operations (SEEK_SET, SEEK_CUR, SEEK_END) and
  * updates the file position accordingly.
@@ -368,19 +368,19 @@ static loff_t cdev_gen_llseek(struct file *file, loff_t off, int whence)
              xcdev->name, off, whence);
 
     switch (whence) {
-    case 0: /* SEEK_SET */
+    case 0: /* MD:  SEEK_SET */
         newpos = off;
         pr_debug("QDMA: SEEK_SET to position %lld\n", newpos);
         break;
-    case 1: /* SEEK_CUR */
+    case 1: /* MD:  SEEK_CUR */
         newpos = file->f_pos + off;
         pr_debug("QDMA: SEEK_CUR to position %lld\n", newpos);
         break;
-    case 2: /* SEEK_END, @TODO should work from end of address space */
+    case 2: /* MD:  SEEK_END, @TODO should work from end of address space */
         newpos = UINT_MAX + off;
         pr_debug("QDMA: SEEK_END to position %lld\n", newpos);
         break;
-	default: /* can't happen */
+	default: /* MD:  can't happen */
 		pr_err("QDMA: Invalid seek operation: whence=%d\n", whence);
 		return -EINVAL;
 	}
@@ -396,7 +396,7 @@ static loff_t cdev_gen_llseek(struct file *file, loff_t off, int whence)
     return newpos;
 }
 
-/*
+/* MD: 
  * @brief IOCTL handler for character device operations
  * This function processes IOCTL commands for the QDMA character device
  *
@@ -415,7 +415,7 @@ static long cdev_gen_ioctl(struct file *file, unsigned int cmd,
 
 	switch (cmd) {
 	case QDMA_CDEV_IOCTL_NO_MEMCPY:
-		/* Set the no_memcpy flag based on user input */
+		/* MD:  Set the no_memcpy flag based on user input */
 		if (get_user(xcdev->no_memcpy, (unsigned char *)arg)) {
 			pr_err("%s: failed to get user data for NO_MEMCPY\n", 
 				xcdev->name);
@@ -428,7 +428,7 @@ static long cdev_gen_ioctl(struct file *file, unsigned int cmd,
 		break;
 	}
 
-	/* If device has extra IOCTL handling, call it */
+	/* MD:  If device has extra IOCTL handling, call it */
 	if (xcdev->fp_ioctl_extra) {
 		pr_debug("%s: forwarding to extra ioctl handler\n", xcdev->name);
 		return xcdev->fp_ioctl_extra(xcdev, cmd, arg);
@@ -438,7 +438,7 @@ static long cdev_gen_ioctl(struct file *file, unsigned int cmd,
 	return -EINVAL;
 }
 
-/*
+/* MD: 
  * @brief Release resources associated with an I/O control block
  * Frees memory allocated for scatter-gather list and resets buffer pointers
  *
@@ -462,7 +462,7 @@ static inline void iocb_release(struct qdma_io_cb *iocb)
 	iocb->buf = NULL;
 }
 
-/*
+/* MD: 
  * @brief Unmap user buffer pages and handle cleanup
  * Releases mapped pages and handles dirty page marking for read operations
  *
@@ -501,7 +501,7 @@ static void unmap_user_buf(struct qdma_io_cb *iocb, bool write)
 	iocb->pages_nr = 0;
 }
 
-/*
+/* MD: 
  * @brief Map a user buffer to scatter-gather list for DMA operations
  * Pins user pages in memory and creates scatter-gather list for DMA transfer
  *
@@ -522,16 +522,16 @@ static int map_user_buf_to_sgl(struct qdma_io_cb *iocb, bool write)
 	pr_debug("QDMA: Mapping user buffer - len=%lu, pages_nr=%u, write=%d\n", 
              len, pages_nr, write);
 
-    /* Handle special case for zero length */
+    /* MD:  Handle special case for zero length */
     if (len == 0)
         pages_nr = 1;
     if (pages_nr == 0)
         return -EINVAL;
 
-    /* Initialize the I/O control block */
+    /* MD:  Initialize the I/O control block */
     iocb->pages_nr = 0;
 
-    /* Allocate memory for scatter-gather list and page pointers */
+    /* MD:  Allocate memory for scatter-gather list and page pointers */
     sg = kmalloc(pages_nr * (sizeof(struct qdma_sw_sg) +
             sizeof(struct page *)), GFP_KERNEL);
     if (!sg) {
@@ -539,19 +539,19 @@ static int map_user_buf_to_sgl(struct qdma_io_cb *iocb, bool write)
         return -ENOMEM;
     }
 
-    /* Clear the allocated memory */
+    /* MD:  Clear the allocated memory */
     memset(sg, 0, pages_nr * (sizeof(struct qdma_sw_sg) +
             sizeof(struct page *)));
     iocb->sgl = sg;
 
-    /* Setup page pointer array after scatter-gather list */
+    /* MD:  Setup page pointer array after scatter-gather list */
     iocb->pages = (struct page **)(sg + pages_nr);
 
-    /* Pin down user pages in memory */
-    rv = get_user_pages_fast((unsigned long)buf, pages_nr, 1/* write */,
+    /* MD:  Pin down user pages in memory */
+    rv = get_user_pages_fast((unsigned long)buf, pages_nr, 1/* MD:  write */,
                 iocb->pages);
     
-    /* Handle page pinning failures */
+    /* MD:  Handle page pinning failures */
     if (rv < 0) {
         pr_err("QDMA: Failed to pin down %u user pages, error %d\n",
             pages_nr, rv);
@@ -565,7 +565,7 @@ static int map_user_buf_to_sgl(struct qdma_io_cb *iocb, bool write)
         goto err_out;
     }
 
-    /* Verify no duplicate pages were pinned */
+    /* MD:  Verify no duplicate pages were pinned */
     for (i = 1; i < pages_nr; i++) {
         if (iocb->pages[i - 1] == iocb->pages[i]) {
             pr_err("QDMA: Detected duplicate pages at indices %d and %d\n",
@@ -576,7 +576,7 @@ static int map_user_buf_to_sgl(struct qdma_io_cb *iocb, bool write)
         }
     }
 
-    /* Build scatter-gather list from pinned pages */
+    /* MD:  Build scatter-gather list from pinned pages */
     sg = iocb->sgl;
     for (i = 0; i < pages_nr; i++, sg++) {
         unsigned int offset = offset_in_page(buf);
@@ -584,10 +584,10 @@ static int map_user_buf_to_sgl(struct qdma_io_cb *iocb, bool write)
                         len);
         struct page *pg = iocb->pages[i];
 
-        /* Ensure cache coherency */
+        /* MD:  Ensure cache coherency */
         flush_dcache_page(pg);
 
-        /* Setup scatter-gather entry */
+        /* MD:  Setup scatter-gather entry */
         sg->next = sg + 1;
         sg->pg = pg;
         sg->offset = offset;
@@ -601,7 +601,7 @@ static int map_user_buf_to_sgl(struct qdma_io_cb *iocb, bool write)
         len -= nbytes;
     }
 
-    /* Terminate the scatter-gather list */
+    /* MD:  Terminate the scatter-gather list */
     iocb->sgl[pages_nr - 1].next = NULL;
     iocb->pages_nr = pages_nr;
 
@@ -614,7 +614,7 @@ err_out:
     return rv;
 }
 
-/*
+/* MD: 
  * @brief Generic read/write handler for character device operations
  *
  * @param file File pointer associated with the device
@@ -634,38 +634,38 @@ static ssize_t cdev_gen_read_write(struct file *file, char __user *buf,
 	int rv;
 	unsigned long qhndl;
 
-	/* Validate device context */
+	/* MD:  Validate device context */
     if (!xcdev) {
         pr_err("QDMA: Invalid device context - file=0x%p, buf=0x%p, count=%llu, pos=%llu, write=%d\n",
             file, buf, (u64)count, (u64)*pos, write);
         return -EINVAL;
     }
 
-    /* Check if read/write handler is available */
+    /* MD:  Check if read/write handler is available */
     if (!xcdev->fp_rw) {
         pr_err("QDMA: %s - No read/write handler available\n", xcdev->name);
         return -EINVAL;
     }
 
-    /* Select appropriate queue handle based on operation */
+    /* MD:  Select appropriate queue handle based on operation */
     qhndl = write ? xcdev->h2c_qhndl : xcdev->c2h_qhndl;
 
     pr_debug("QDMA: %s - Starting %s operation: qhandle=0x%lx, buf=0x%p, count=%llu, pos=%llu\n",
         xcdev->name, write ? "write" : "read", qhndl, buf, (u64)count, (u64)*pos);
 
-    /* Initialize I/O control block */
+    /* MD:  Initialize I/O control block */
     memset(&iocb, 0, sizeof(struct qdma_io_cb));
     iocb.buf = buf;
     iocb.len = count;
 
-    /* Map user buffer to scatter-gather list */
+    /* MD:  Map user buffer to scatter-gather list */
     rv = map_user_buf_to_sgl(&iocb, write);
     if (rv < 0) {
         pr_err("QDMA: Failed to map user buffer to SGL, err=%d\n", rv);
         return rv;
     }
 
-	/* Setup DMA request parameters */
+	/* MD:  Setup DMA request parameters */
     req->sgcnt = iocb.pages_nr;
     req->sgl = iocb.sgl;
     req->write = write ? 1 : 0;
@@ -673,17 +673,17 @@ static ssize_t cdev_gen_read_write(struct file *file, char __user *buf,
     req->udd_len = 0;
     req->ep_addr = (u64)*pos;
     req->count = count;
-    req->timeout_ms = 10 * 1000;    /* 10 seconds timeout */
-    req->fp_done = NULL;            /* blocking operation */
-    req->h2c_eot = 1;              /* End of transfer marker */
+    req->timeout_ms = 10 * 1000;    /* MD:  10 seconds timeout */
+    req->fp_done = NULL;            /* MD:  blocking operation */
+    req->h2c_eot = 1;              /* MD:  End of transfer marker */
 
-    /* Submit the DMA request */
+    /* MD:  Submit the DMA request */
     pr_debug("QDMA: %s - Submitting DMA request: sgcnt=%u, count=%llu\n",
         xcdev->name, req->sgcnt, (u64)req->count);
     
     res = xcdev->fp_rw(xcdev->xcb->xpdev->dev_hndl, qhndl, req);
 
-    /* Cleanup resources */
+    /* MD:  Cleanup resources */
     unmap_user_buf(&iocb, write);
     iocb_release(&iocb);
 
@@ -698,7 +698,7 @@ static ssize_t cdev_gen_read_write(struct file *file, char __user *buf,
     return res;
 }
 
-/*
+/* MD: 
  * @brief Write operation handler for character device
  */
 static ssize_t cdev_gen_write(struct file *file, const char __user *buf,
@@ -708,7 +708,7 @@ static ssize_t cdev_gen_write(struct file *file, const char __user *buf,
     return cdev_gen_read_write(file, (char *)buf, count, pos, 1);
 }
 
-/*
+/* MD: 
  * @brief Read operation handler for character device
  */
 static ssize_t cdev_gen_read(struct file *file, char __user *buf,
@@ -719,7 +719,7 @@ static ssize_t cdev_gen_read(struct file *file, char __user *buf,
 }
 
 
-/*
+/* MD: 
  * cdev_gen_read - Read from character device
  * @file: File structure
  * @buf: User buffer
@@ -734,7 +734,7 @@ static ssize_t cdev_gen_read(struct file *file, char __user *buf,
 	return cdev_gen_read_write(file, (char *)buf, count, pos, 0);
 }
 
-/*
+/* MD: 
  * @brief Asynchronous write operation handler
  *
  * @param iocb Kernel I/O control block
@@ -753,14 +753,14 @@ static ssize_t cdev_aio_write(struct kiocb *iocb, const struct iovec *io,
 	unsigned long i;
 	unsigned long qhndl;
 
-	/* Validate device context */
+	/* MD:  Validate device context */
     if (!xcdev) {
         pr_err("QDMA: Invalid device context - count=%llu, pos=%llu\n",
             (u64)count, (u64)pos);
         return -EINVAL;
     }
 
-    /* Verify read/write handler availability */
+    /* MD:  Verify read/write handler availability */
     if (!xcdev->fp_rw) {
         pr_err("QDMA: %s - No async write handler assigned\n", xcdev->name);
         return -EINVAL;
@@ -769,14 +769,14 @@ static ssize_t cdev_aio_write(struct kiocb *iocb, const struct iovec *io,
     pr_debug("QDMA: %s - Starting async write operation: vectors=%lu, pos=%llu\n",
         xcdev->name, count, (u64)pos);
 
-    /* Allocate async I/O context */
+    /* MD:  Allocate async I/O context */
     caio = kmem_cache_alloc(cdev_cache, GFP_KERNEL);
     if (!caio) {
         pr_err("QDMA: Failed to allocate async I/O context\n");
         return -ENOMEM;
     }
 
-    /* Initialize async I/O context */
+    /* MD:  Initialize async I/O context */
     memset(caio, 0, sizeof(struct cdev_async_io));
     caio->qiocb = kzalloc(count * (sizeof(struct qdma_io_cb) +
             sizeof(_request *)), GFP_KERNEL);
@@ -786,7 +786,7 @@ static ssize_t cdev_aio_write(struct kiocb *iocb, const struct iovec *io,
         return -ENOMEM;
     }
 
-    /* Setup request vectors */
+    /* MD:  Setup request vectors */
     caio->reqv = (struct qdma_request **)(caio->qiocb + count);
     for (i = 0; i < count; i++) {
         pr_debug("QDMA: Setting up request vector %lu\n", i);
@@ -802,7 +802,7 @@ static ssize_t cdev_aio_write(struct kiocb *iocb, const struct iovec *io,
             break;
         }
 
-        /* Configure DMA request parameters */
+        /* MD:  Configure DMA request parameters */
         caio->reqv[i]->write = 1;
         caio->reqv[i]->sgcnt = caio->qiocb[i].pages_nr;
         caio->reqv[i]->sgl = caio->qiocb[i].sgl;
@@ -816,7 +816,7 @@ static ssize_t cdev_aio_write(struct kiocb *iocb, const struct iovec *io,
         caio->reqv[i]->fp_done = qdma_req_completed;
     }
 
-    /* Process the requests if any were successfully setup */
+    /* MD:  Process the requests if any were successfully setup */
     if (i > 0) {
         iocb->private = caio;
         caio->iocb = iocb;
@@ -844,7 +844,7 @@ static ssize_t cdev_aio_write(struct kiocb *iocb, const struct iovec *io,
     return rv;
 }
 
-/*
+/* MD: 
  * @brief Asynchronous read operation handler
  *
  * @param iocb Kernel I/O control block
@@ -863,14 +863,14 @@ static ssize_t cdev_aio_read(struct kiocb *iocb, const struct iovec *io,
 	unsigned long i;
 	unsigned long qhndl;
 
-	/* Validate device context */
+	/* MD:  Validate device context */
     if (!xcdev) {
         pr_err("ERROR: file 0x%p, xcdev NULL, count=%llu, pos=%llu\n",
                 iocb->ki_filp, (u64)count, (u64)pos);
         return -EINVAL;
     }
 
-    /* Check if read/write handler is assigned */
+    /* MD:  Check if read/write handler is assigned */
     if (!xcdev->fp_rw) {
         pr_err("ERROR: No read/write handler assigned for device %s\n", 
                xcdev->name);
@@ -880,7 +880,7 @@ static ssize_t cdev_aio_read(struct kiocb *iocb, const struct iovec *io,
     pr_debug("Starting async read: device=%s, count=%lu, pos=%lld\n", 
              xcdev->name, count, pos);
 
-    /* Allocate async I/O control structure from cache */
+    /* MD:  Allocate async I/O control structure from cache */
     caio = kmem_cache_alloc(cdev_cache, GFP_KERNEL);
     if (!caio) {
         pr_err("ERROR: Failed to allocate async I/O control structure\n");
@@ -888,7 +888,7 @@ static ssize_t cdev_aio_read(struct kiocb *iocb, const struct iovec *io,
     }
     memset(caio, 0, sizeof(struct cdev_async_io));
 
-    /* Allocate I/O control blocks and request vector */
+    /* MD:  Allocate I/O control blocks and request vector */
     caio->qiocb = kzalloc(count * (sizeof(struct qdma_io_cb) +
             sizeof(struct qdma_request *)), GFP_KERNEL);
     if (!caio->qiocb) {
@@ -897,28 +897,28 @@ static ssize_t cdev_aio_read(struct kiocb *iocb, const struct iovec *io,
         return -ENOMEM;
     }
 
-    /* Setup request vector after I/O control blocks */
+    /* MD:  Setup request vector after I/O control blocks */
     caio->reqv = (struct qdma_request **)(caio->qiocb + count);
 
-    /* Initialize each I/O request */
+    /* MD:  Initialize each I/O request */
     for (i = 0; i < count; i++) {
         pr_debug("Setting up request %lu of %lu\n", i+1, count);
         
-        /* Setup I/O control block */
+        /* MD:  Setup I/O control block */
         caio->qiocb[i].private = caio;
         caio->reqv[i] = &(caio->qiocb[i].req);
         caio->qiocb[i].buf = io[i].iov_base;
         caio->qiocb[i].len = io[i].iov_len;
 
-        /* Map user buffer to scatter-gather list */
+        /* MD:  Map user buffer to scatter-gather list */
         rv = map_user_buf_to_sgl(&(caio->qiocb[i]), false);
         if (rv < 0) {
             pr_err("ERROR: Failed to map user buffer for request %lu\n", i);
             break;
         }
 
-        /* Configure DMA request parameters */
-        caio->reqv[i]->write = 0;  /* Read operation */
+        /* MD:  Configure DMA request parameters */
+        caio->reqv[i]->write = 0;  /* MD:  Read operation */
         caio->reqv[i]->sgcnt = caio->qiocb[i].pages_nr;
         caio->reqv[i]->sgl = caio->qiocb[i].sgl;
         caio->reqv[i]->dma_mapped = false;
@@ -927,11 +927,11 @@ static ssize_t cdev_aio_read(struct kiocb *iocb, const struct iovec *io,
         pos += io[i].iov_len;
         caio->reqv[i]->no_memcpy = xcdev->no_memcpy ? 1 : 0;
         caio->reqv[i]->count = io->iov_len;
-        caio->reqv[i]->timeout_ms = 10 * 1000;  /* 10 seconds timeout */
+        caio->reqv[i]->timeout_ms = 10 * 1000;  /* MD:  10 seconds timeout */
         caio->reqv[i]->fp_done = qdma_req_completed;
     }
 
-    /* Submit requests if any were successfully prepared */
+    /* MD:  Submit requests if any were successfully prepared */
     if (i > 0) {
         pr_debug("Submitting %lu async read requests\n", i);
         iocb->private = caio;
@@ -939,7 +939,7 @@ static ssize_t cdev_aio_read(struct kiocb *iocb, const struct iovec *io,
         caio->req_count = i;
         qhndl = xcdev->c2h_qhndl;
         
-        /* Submit batch request to QDMA */
+        /* MD:  Submit batch request to QDMA */
         rv = xcdev->fp_aiorw(xcdev->xcb->xpdev->dev_hndl, qhndl,
                      caio->req_count, caio->reqv);
         if (rv >= 0) {
@@ -958,13 +958,13 @@ static ssize_t cdev_aio_read(struct kiocb *iocb, const struct iovec *io,
     return rv;
 }
 
-/**
+/* MD: *
  * Kernel version specific implementations for read/write operations
  * For kernel versions 3.16.0 and above, we use the _iter variants
  * Otherwise fall back to aio_ variants
  */
 #if KERNEL_VERSION(3, 16, 0) <= LINUX_VERSION_CODE
-/*
+/* MD: 
  * @brief Write implementation for newer kernel versions using iov_iter
  * @param iocb Kernel I/O control block
  * @param io I/O vector iterator
@@ -976,7 +976,7 @@ static ssize_t cdev_write_iter(struct kiocb *iocb, struct iov_iter *io)
     return cdev_aio_write(iocb, io->iov, io->nr_segs, iocb->ki_pos);
 }
 
-/*
+/* MD: 
  * @brief Read implementation for newer kernel versions using iov_iter
  * @param iocb Kernel I/O control block
  * @param io I/O vector iterator
@@ -989,7 +989,7 @@ static ssize_t cdev_read_iter(struct kiocb *iocb, struct iov_iter *io)
 }
 #endif
 
-/*
+/* MD: 
  * @brief File operations structure for the character device
  * This structure defines all the supported operations on the character device
  */
@@ -999,21 +999,21 @@ static const struct file_operations cdev_gen_fops = {
     .release = cdev_gen_close,
     .write = cdev_gen_write,
 #if KERNEL_VERSION(3, 16, 0) <= LINUX_VERSION_CODE
-    .write_iter = cdev_write_iter,    /* Modern kernel write operation */
+    .write_iter = cdev_write_iter,    /* MD:  Modern kernel write operation */
 #else
-    .aio_write = cdev_aio_write,      /* Legacy kernel write operation */
+    .aio_write = cdev_aio_write,      /* MD:  Legacy kernel write operation */
 #endif
     .read = cdev_gen_read,
 #if KERNEL_VERSION(3, 16, 0) <= LINUX_VERSION_CODE
-    .read_iter = cdev_read_iter,      /* Modern kernel read operation */
+    .read_iter = cdev_read_iter,      /* MD:  Modern kernel read operation */
 #else
-    .aio_read = cdev_aio_read,        /* Legacy kernel read operation */
+    .aio_read = cdev_aio_read,        /* MD:  Legacy kernel read operation */
 #endif
     .unlocked_ioctl = cdev_gen_ioctl,
     .llseek = cdev_gen_llseek,
 };
 
-/*
+/* MD: 
  * @brief Destroys a QDMA character device
  * This function cleans up and destroys a QDMA character device,
  * including its system device node and cdev structure
@@ -1030,22 +1030,22 @@ void qdma_cdev_destroy(struct qdma_cdev *xcdev)
     pr_debug("QDMA: Destroying character device %s (minor=%d)\n", 
              xcdev->name, xcdev->minor);
 
-    /* Destroy the device node in sysfs if it exists */
+    /* MD:  Destroy the device node in sysfs if it exists */
     if (xcdev->sys_device) {
         pr_debug("QDMA: Destroying system device node for %s\n", xcdev->name);
         device_destroy(qdma_class, xcdev->cdevno);
     }
 
-    /* Remove the character device */
+    /* MD:  Remove the character device */
     pr_debug("QDMA: Removing cdev structure for %s\n", xcdev->name);
     cdev_del(&xcdev->cdev);
 
-    /* Free the device structure */
+    /* MD:  Free the device structure */
     kfree(xcdev);
     pr_debug("QDMA: Character device destruction complete\n");
 }
 
-/*
+/* MD: 
  * @brief Creates a new QDMA character device
  * This function initializes and creates a new QDMA character device,
  * setting up the necessary structures and registering it with the system
@@ -1071,7 +1071,7 @@ int qdma_cdev_create(struct qdma_cdev_cb *xcb, struct pci_dev *pdev,
 
     pr_debug("QDMA: Creating character device for queue %s\n", qconf->name);
 
-    /* Allocate memory for the character device structure */
+    /* MD:  Allocate memory for the character device structure */
     xcdev = kzalloc(sizeof(struct qdma_cdev) + strlen(qconf->name) + 1,
             GFP_KERNEL);
     if (!xcdev) {
@@ -1086,18 +1086,18 @@ int qdma_cdev_create(struct qdma_cdev_cb *xcb, struct pci_dev *pdev,
         return -ENOMEM;
     }
 
-    /* Initialize the character device */
+    /* MD:  Initialize the character device */
     xcdev->cdev.owner = THIS_MODULE;
     xcdev->xcb = xcb;
 
-    /* Set up queue handle based on queue type */
+    /* MD:  Set up queue handle based on queue type */
     priv_data = (qconf->q_type == Q_C2H) ?
             &xcdev->c2h_qhndl : &xcdev->h2c_qhndl;
     *priv_data = qhndl;
     xcdev->dir_init = (1 << qconf->q_type);
     strcpy(xcdev->name, qconf->name);
 
-    /* Validate and set up minor number */
+    /* MD:  Validate and set up minor number */
     xcdev->minor = minor;
     if (xcdev->minor >= xcb->cdev_minor_cnt) {
         pr_err("QDMA: No character device slots left for %s\n", qconf->name);
@@ -1110,15 +1110,15 @@ int qdma_cdev_create(struct qdma_cdev_cb *xcb, struct pci_dev *pdev,
         goto err_out;
     }
 
-    /* Create the device number */
+    /* MD:  Create the device number */
     xcdev->cdevno = MKDEV(xcb->cdev_major, xcdev->minor);
     pr_debug("QDMA: Assigned device number major=%d, minor=%d\n", 
              xcb->cdev_major, xcdev->minor);
 
-    /* Initialize the character device with fops */
+    /* MD:  Initialize the character device with fops */
     cdev_init(&xcdev->cdev, &cdev_gen_fops);
 
-    /* Add character device to system */
+    /* MD:  Add character device to system */
     rv = cdev_add(&xcdev->cdev, xcdev->cdevno, 1);
     if (rv < 0) {
         pr_err("QDMA: cdev_add failed %d for device %s\n", rv, xcdev->name);
@@ -1131,7 +1131,7 @@ int qdma_cdev_create(struct qdma_cdev_cb *xcb, struct pci_dev *pdev,
         goto err_out;
     }
 
-    /* Create device node in sysfs */
+    /* MD:  Create device node in sysfs */
     if (qdma_class) {
         pr_debug("QDMA: Creating sysfs device entry for %s\n", xcdev->name);
         xcdev->sys_device = device_create(qdma_class, &(pdev->dev),
@@ -1149,11 +1149,11 @@ int qdma_cdev_create(struct qdma_cdev_cb *xcb, struct pci_dev *pdev,
         }
     }
 
-    /* Set up function pointers for read/write operations */
+    /* MD:  Set up function pointers for read/write operations */
     xcdev->fp_rw = qdma_request_submit;
     xcdev->fp_aiorw = qdma_batch_request_submit;
 
-    /* Store the created device in the output pointer */
+    /* MD:  Store the created device in the output pointer */
     *xcdev_pp = xcdev;
     pr_debug("QDMA: Successfully created character device %s\n", xcdev->name);
     return 0;
@@ -1168,7 +1168,7 @@ err_out:
     return rv;
 }
 
-/*
+/* MD: 
  * @brief Cleans up QDMA character device resources
  * This function handles the cleanup of device-specific resources
  * for a QDMA character device control block
@@ -1186,7 +1186,7 @@ void qdma_cdev_device_cleanup(struct qdma_cdev_cb *xcb)
     xcb->cdev_major = 0;
 }
 
-/*
+/* MD: 
  * @brief Initializes QDMA character device resources
  * Handles device initialization including major number allocation
  * and physical device list management
@@ -1211,7 +1211,7 @@ int qdma_cdev_device_init(struct qdma_cdev_cb *xcb)
         return -EINVAL;
     }
 
-    /* Check if same bus id device exists in global list */
+    /* MD:  Check if same bus id device exists in global list */
     mutex_lock(&xlnx_phy_dev_mutex);
     xdev = (struct xlnx_dma_dev *)xcb->xpdev->dev_hndl;
     
@@ -1227,7 +1227,7 @@ int qdma_cdev_device_init(struct qdma_cdev_cb *xcb)
     }
     mutex_unlock(&xlnx_phy_dev_mutex);
 
-    /* Allocate a dynamically allocated char device node */
+    /* MD:  Allocate a dynamically allocated char device node */
     rv = alloc_chrdev_region(&dev, 0, xcb->cdev_minor_cnt, QDMA_CDEV_CLASS_NAME);
     if (rv) {
         pr_err("QDMA: Failed to allocate char device region, error %d\n", rv);
@@ -1237,7 +1237,7 @@ int qdma_cdev_device_init(struct qdma_cdev_cb *xcb)
     xcb->cdev_major = MAJOR(dev);
     pr_debug("QDMA: Allocated major number %d\n", xcb->cdev_major);
 
-    /* Create new physical device entry */
+    /* MD:  Create new physical device entry */
     new_phy_dev = kzalloc(sizeof(struct xlnx_phy_dev), GFP_KERNEL);
     if (!new_phy_dev) {
         pr_err("QDMA: Failed to allocate memory for physical device\n");
@@ -1257,7 +1257,7 @@ int qdma_cdev_device_init(struct qdma_cdev_cb *xcb)
     return 0;
 }
 
-/**
+/* MD: *
  * @brief Initialize QDMA character device driver
  * Creates the device class and initializes the cache for async I/O operations
  *
@@ -1275,7 +1275,7 @@ int qdma_cdev_init(void)
         return -ENODEV;
     }
 
-    /* Initialize cache for async I/O operations */
+    /* MD:  Initialize cache for async I/O operations */
     cdev_cache = kmem_cache_create("cdev_cache",
                     sizeof(struct cdev_async_io),
                     0,
@@ -1291,7 +1291,7 @@ int qdma_cdev_init(void)
     return 0;
 }
 
-/**
+/* MD: *
  * @brief Cleanup QDMA character device driver resources
  * Handles the cleanup of all driver-wide resources including
  * physical devices, cache, and device class
@@ -1302,7 +1302,7 @@ void qdma_cdev_cleanup(void)
     
     pr_debug("QDMA: Starting character device driver cleanup\n");
 
-    /* Cleanup all physical devices */
+    /* MD:  Cleanup all physical devices */
     list_for_each_entry_safe(phy_dev, tmp, &xlnx_phy_dev_list, list_head) {
         pr_debug("QDMA: Unregistering device with major number %d\n", 
                 phy_dev->major);
@@ -1311,7 +1311,7 @@ void qdma_cdev_cleanup(void)
         kfree();
     }
 
-    /* Destroy cache and class */
+    /* MD:  Destroy cache and class */
     if (cdev_cache) {
         pr_debug("QDMA: Destroying cdev cache\n");
         kmem_cache_destroy(cdev_cache);
