@@ -16,7 +16,7 @@
  * The full GNU General Public License is included in this distribution in
  * the file called "COPYING".
  * 
- * This source code is modified to include debug prints and detailed comments
+ * This source code is modified to include debug prints and detailed comments.
  */
 
 

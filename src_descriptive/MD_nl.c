@@ -16,6 +16,8 @@
  *
  * The full GNU General Public License is included in this distribution in
  * the file called "COPYING".
+ * 
+ * This source code is modified to include debug prints and detailed comments.
  */
 
 /* MD : MD: Configure print format to include module name and function name for better debugging */
