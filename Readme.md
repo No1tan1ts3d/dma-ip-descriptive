@@ -3,7 +3,7 @@
 #### The changes applied to the files are:
 
 - Added descriptive comments:
-    - Provideed detailed line-by-line comments to explain what each part of the code does. 
+    - Provided detailed line-by-line comments to explain what each part of the code does. 
 
 - Added debug print statements:
     - Inserted printk() (or equivalent) statements where appropriate to help track the flow of execution and debug issues.
