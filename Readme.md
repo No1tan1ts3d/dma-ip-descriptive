@@ -9,7 +9,7 @@
     - Inserted printk() (or equivalent) statements where appropriate to help track the flow of execution and debug issues.
 
 - Maintain compatibility:
-    - Ensureed the modified code remains functional and can be compiled as part of the overall driver.
+    - Ensured the modified code remained functional and can be compiled as part of the overall driver.
 
 #### The [src_descriptive](./dma-ip-descriptive-ver/src_descriptive) is the descriptive version of [src files](https://github.com/Xilinx/dma_ip_drivers/tree/master/QDMA/linux-kernel/driver/src).
 
